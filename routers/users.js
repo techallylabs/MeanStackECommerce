@@ -43,13 +43,16 @@ router.post('/', async (req,res) => {
 
 router.put("/:id", async (req,res)=>{
     const existing_user = await User.findById(req.params.id);
+    if(!existing_user){
+        return res.status(400).send("User not found");
+    }
     let newPasswordHash;
     if(req.body.password){
         newPasswordHash = bcrypt.hashSync(req.body.password,10)
     }else{
         newPasswordHash = existing_user.passwordHash;
     }
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, {
+    User.findByIdAndUpdate(req.params.id, {
         name: req.body.name,
         email:req.body.email,
         passwordHash: newPasswordHash,
@@ -60,12 +63,13 @@ router.put("/:id", async (req,res)=>{
         country: req.body.country,
         phone: req.body.phone,
         isAdmin: req.body.isAdmin
+    }, {new:true}, (err,docs) => {
+        if(err){
+            return res.status(400).send(`Could not update because: ${err}`);
+        }else{
+            return res.send({"updated user": docs});
+        }
     });
-    if(updatedUser){
-        return res.send(updatedUser);
-    }else{
-        return res.status(400).send("Could not set");
-    }
 });
 
 router.post("/login",async (req,res)=>{

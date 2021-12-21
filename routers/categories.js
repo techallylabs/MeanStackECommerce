@@ -26,18 +26,18 @@ router.get(`/`, async (req,res) => {
   })
 
   router.put('/:id',  (req,res) => {
-    const id = req.params["id"]
+    const id = req.params.id
     Category.findByIdAndUpdate(id,{
         name: req.body.name,
         icon:req.body.icon,
-        color: req.body.icon
-    }).then(category => {
-        if(category){
-            res.send(category);
+        color: req.body.color
+    }, {new:true}, (err,docs) => {
+        if(err){
+            return res.status(400).send(`Cannot update the record because : ${err}`);
         }else{
-            res.status(400).send("Cannot update the record");
+            return res.send({"updated category": docs});        
         }
-    });  
+    });
 })
 
   router.post('/', async (req,res) => {

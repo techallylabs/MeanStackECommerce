@@ -74,25 +74,28 @@ router.put('/:id',  (req,res) => {
     });  
 })
 
-router.delete(`/:id`, (req,res) => {
-    //Check if the object id is valid
-    if( !mongoose.isValidObjectId(req.params.id) ){
-        res.status(400).send("Object id is invalid");
+router.delete(`/:id`, async (req,res) => {
+
+    //Check if the order exists
+    const order = await Order.findById(req.params.id);
+    if(!order){
+        return res.status(400).send("Cannot find the order");
     }
 
     //Delete the order
-    Order.findByIdAndDelete(req.params.id, async order => {
+    Order.findByIdAndDelete(req.params.id).then(async order => {
         if(order){
             await order.orderItems.map(async orderItem => {
                 await OrderItem.findByIdAndDelete(orderItem);
             });
-            res.status(200).send("Order Deleted");
+            return res.status(200).send("Order Deleted");
         }else{
-            res.status(400).send("Order id is not found");
+            return res.status(400).send("Order id is not found");
         }
     }).catch(err => {
-        res.status(400).send(err);
-    })
+        console.log(err);
+        return res.send({"error":err});
+    });
   })
 
   router.get("/get/totalsales", async (req,res) => {
