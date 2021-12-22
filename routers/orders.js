@@ -3,7 +3,6 @@ const router = express.Router();
 const {Order} = require("../models/orders")
 const {OrderItem} = require("../models/OrderItem")
 
-
 router.get(`/`, async (req,res) => {
     const orderList = await Order.find().populate("user","name").sort({"dateOrdered":-1});
     if(!orderList){
@@ -38,7 +37,8 @@ router.get(`/`, async (req,res) => {
         const order_item = await OrderItem.findById(order_item_id).populate("product","price");
         return order_item.product.price * order_item.quantity
     }));
-    const total_price = individual_order_item_prices.reduce((a,b)=> {a+b}, 0);
+        
+    const total_price =  individual_order_item_prices.reduce((a,b)=> a+b);
 
     let new_order = new Order({
         orderItems: order_item_ids_resolved,
@@ -114,12 +114,13 @@ router.delete(`/:id`, async (req,res) => {
       }
   })
 
-router.get("/getCount", async (req,res) => {
-    const orderCount = await Order.countDocuments( async (count) => count);
-    if(!orderCount){
-        res.status(400).send("Unable to retrieve order count");
+router.get("/get/count", async (req,res) => {
+    const order_count = await Order.countDocuments();
+    console.log(order_count);
+    if(!order_count){
+        return res.status(400).send("Unable to retrieve the count");   
     }else{
-        res.send(orderCount);
+        return res.send({"order count":order_count});
     }
 });
 
@@ -136,6 +137,5 @@ router.get(`/getuserorders/:id`,async (req,res) => {
     }
 });
 
-
-  module.exports = router;
+module.exports = router;
 
